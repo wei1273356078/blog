@@ -14,7 +14,7 @@ export default defineConfig({
     cacheDir: './.vitepress/cache',  // 设置缓存目录  默认值： .vitepress/cache
     head: [
         // 添加 favicon.ico
-        ['link', { rel: 'icon', href: '/blog/public/favicon.ico' }],
+        ['link', { rel: 'icon', href: '/blog/favicon.ico' }],
         
         // 可选：如果你有 PNG 格式的 favicon，比如用于苹果设备
         // ['link', { rel: 'icon', type: 'image/png', href: '/favicon-180.png', sizes: '180x180' }],
@@ -23,7 +23,7 @@ export default defineConfig({
         // ['link', { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }],
         
         // 可选：其他格式，如 SVG
-        // ['link', { rel: 'icon', type: 'image/svg+xml', href: '/blog/public/logo.svg' }],
+        // ['link', { rel: 'icon', type: 'image/svg+xml', href: '/blog/logo.svg' }],
     ],
     themeConfig: {
         nav: [
