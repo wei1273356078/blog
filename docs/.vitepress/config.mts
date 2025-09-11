@@ -5,7 +5,7 @@ export default defineConfig({
     title: "erha",
     titleTemplate: ':title - erha',
     description: "erha' Blog",
-    base: '/',  // 设置站点的基础路径。如果站点部署在非根路径下，需要设置此选项。
+    base: '/blog/',  // 设置站点的基础路径。如果站点部署在非根路径下，需要设置此选项。
     cleanUrls: true,  // 当设置为 true 时，VitePress 将从 URL 中删除 .html 后缀。
     srcExclude: ['**/README.md', '**/TODO.md'],  // 排除不需要编译的文件
     srcDir: './src',  // 设置源文件目录为src    默认值：.
