@@ -28,7 +28,7 @@ export default defineConfig({
     themeConfig: {
         nav: [
             { text: 'Home', link: '/' },
-            { text: '前端相关文章', link: '/front-end/H5语义标签' },
+            { text: '前端相关文章', link: '/front-end/HTML/H5语义标签' },
             { text: '后端相关文章', link: '/back-end/node简介' }
         ],
         sidebar: {
@@ -36,29 +36,41 @@ export default defineConfig({
                 //   {
                 //     text: 'Examples',
                 //     items: [
-                //       { text: 'Markdown Examples', link: '/markdown-examples' },
-                //       { text: 'Runtime API Examples', link: '/api-examples' }
+                //       { text: 'Markdown Examples', link: '/front-end/Examples/markdown-examples' },
+                //       { text: 'Runtime API Examples', link: '/front-end/Examples/api-examples' }
                 //     ]
                 //   },
                 {
                     text: 'HTML',
                     collapsed: false,  // 是否折叠
                     items: [
-                        { text: 'H5语义标签', link: '/front-end/H5语义标签' },
+                        { text: 'H5语义标签', link: '/front-end/HTML/H5语义标签' },
                     ]
                 },
-                //   {
+                // {
                 //     text: 'CSS',
                 //     items: [
-                //       { text: 'H5语义标签', link: '/H5语义标签' },
+                //         { text: 'H5语义标签', link: '/front-end/CSS/H5语义标签' },
                 //     ]
-                //   },
-                //   {
+                // },
+                // {
                 //     text: 'JavaScript',
                 //     items: [
-                //       { text: 'H5语义标签', link: '/H5语义标签' },
+                //         { text: 'H5语义标签', link: '/front-end/JavaScript/H5语义标签' },
                 //     ]
-                //   }
+                // },
+                // {
+                //     text: '开发中的问题',
+                //     items: [
+                //         { text: 'H5语义标签', link: '/front-end/problem/H5语义标签' },
+                //     ]
+                // },
+                {
+                    text: '奇妙体验馆',
+                    items: [
+                        { text: '实现自己的扣子AI对话', link: '/front-end/wonder/coze-ai' },
+                    ]
+                },
             ],
             '/back-end/': [
                 {

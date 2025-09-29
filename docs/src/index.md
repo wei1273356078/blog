@@ -8,7 +8,7 @@ hero:
   actions:
     - theme: brand
       text: 前端相关文章
-      link: /front-end/H5语义标签
+      link: /front-end/HTML/H5语义标签
     - theme: alt
       text: 后端相关文章
       link: /back-end/node简介
