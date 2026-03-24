@@ -17,6 +17,14 @@ on:
         options:
           - 'true'
           - 'false'
+      test_ssh_only:
+        description: '仅测试 SSH 连接（不部署）'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 # 设置 GITHUB_TOKEN 的权限，以允许部署到 GitHub Pages
 permissions:
@@ -74,7 +82,7 @@ jobs:
 
   # 部署到自己的服务器（仅在手动触发时执行）
   deploy-to-server:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_server == 'true'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_server == 'true' && github.event.inputs.test_ssh_only == 'false'
     needs: build
     runs-on: ubuntu-latest
     name: Deploy to Server
@@ -147,3 +155,37 @@ jobs:
           script: |
             cd ${{ secrets.SERVER_DEPLOY_PATH }}
             ls -t backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm -f
+
+  # 仅测试 SSH 连接（不构建和部署）
+  test-ssh:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_ssh_only == 'true'
+    runs-on: ubuntu-latest
+    name: Test SSH Connection
+    steps:
+      - name: Test SSH connection
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            echo "✅ SSH 连接成功！"
+            echo "================================"
+            echo "当前用户: $(whoami)"
+            echo "当前目录: $(pwd)"
+            echo "服务器时间: $(date)"
+            echo "操作系统: $(cat /etc/os-release | grep PRETTY_NAME)"
+            echo "================================"
+            echo "目标部署路径: ${{ secrets.SERVER_DEPLOY_PATH }}"
+
+            if [ -d "${{ secrets.SERVER_DEPLOY_PATH }}" ]; then
+              echo "✅ 目标目录存在"
+              echo "目录内容："
+              ls -la ${{ secrets.SERVER_DEPLOY_PATH }}
+            else
+              echo "⚠️ 目标目录不存在，将在部署时自动创建"
+            fi
+            echo "================================"
+            echo "磁盘空间："
+            df -h
