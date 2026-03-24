@@ -1,8 +1,8 @@
 node_modules/
 
 docs/.vitepress/dist
+dist
 
 # Editor directories and files
 .idea
 .vscode
-

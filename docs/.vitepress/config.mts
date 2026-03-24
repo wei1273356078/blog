@@ -9,7 +9,7 @@ export default defineConfig({
     cleanUrls: true,  // 当设置为 true 时，VitePress 将从 URL 中删除 .html 后缀。
     srcExclude: ['**/README.md', '**/TODO.md'],  // 排除不需要编译的文件
     srcDir: './src',  // 设置源文件目录为src    默认值：.
-    // outDir: '../dist',  // 设置输出目录  默认值： ./.vitepress/dist
+    outDir: '../dist',  // 设置输出目录  默认值： ./.vitepress/dist
     assetsDir: 'static',  // 打包时设置静态资源存放的文件夹  默认值： assets
     cacheDir: './.vitepress/cache',  // 设置缓存目录  默认值： .vitepress/cache
     head: [
