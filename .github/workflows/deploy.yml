@@ -39,8 +39,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # 构建工作
+  # 构建工作（仅在 push 到 master 时执行）
   build:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
