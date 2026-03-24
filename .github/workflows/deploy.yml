@@ -17,14 +17,6 @@ on:
         options:
           - 'true'
           - 'false'
-      test_ssh_only:
-        description: '仅测试 SSH 连接'
-        required: true
-        default: 'false'
-        type: choice
-        options:
-          - 'true'
-          - 'false'
 
 # 设置 GITHUB_TOKEN 的权限，以允许部署到 GitHub Pages
 permissions:
@@ -39,9 +31,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # 构建工作（仅在 push 到 master 时执行）
+  # 构建工作（push 到 master 时或手动部署到服务器时执行）
   build:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_server == 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -65,7 +57,7 @@ jobs:
         with:
           name: dist-artifact
           path: dist
-          retention-days: 7
+          retention-days: 7   # 保留7天
       # 上传用于 GitHub Pages 的 artifact
       - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v3
@@ -89,7 +81,7 @@ jobs:
   # 部署到服务器（手动触发，使用已构建的 artifact）
   deploy-to-server:
     environment: github-pages   # 指定环境名称，需要在github-pages环境中配置变量SERVER_HOST、SERVER_USER等，这样不需要在全局配置
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_server == 'true' && github.event.inputs.test_ssh_only == 'false'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_server == 'true'
     needs: build
     runs-on: ubuntu-latest
     name: Deploy to Server
@@ -142,38 +134,3 @@ jobs:
           script: |
             cd ${{ secrets.SERVER_DEPLOY_PATH }}
             ls -t backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm -f
-
-  # 仅测试 SSH 连接（不构建和部署）
-  test-ssh:
-    environment: github-pages
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_ssh_only == 'true'
-    runs-on: ubuntu-latest
-    name: Test SSH Connection
-    steps:
-      - name: Test SSH connection
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
-          script: |
-            echo "✅ SSH 连接成功！"
-            echo "================================"
-            echo "当前用户: $(whoami)"
-            echo "当前目录: $(pwd)"
-            echo "服务器时间: $(date)"
-            echo "操作系统: $(cat /etc/os-release | grep PRETTY_NAME)"
-            echo "================================"
-            echo "目标部署路径: ${{ secrets.SERVER_DEPLOY_PATH }}"
-
-            if [ -d "${{ secrets.SERVER_DEPLOY_PATH }}" ]; then
-              echo "✅ 目标目录存在"
-              echo "目录内容："
-              ls -la ${{ secrets.SERVER_DEPLOY_PATH }}
-            else
-              echo "⚠️ 目标目录不存在，将在部署时自动创建"
-            fi
-            echo "================================"
-            echo "磁盘空间："
-            df -h
