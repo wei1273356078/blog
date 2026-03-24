@@ -94,6 +94,14 @@ jobs:
       - name: Build with VitePress
         run: npm run docs:build
 
+      - name: Debug - Check secrets
+      run: |
+        echo "Checking secrets..."
+        echo "SERVER_HOST is configured: ${{ secrets.SERVER_HOST != '' }}"
+        echo "SERVER_USER is configured: ${{ secrets.SERVER_USER != '' }}"
+        echo "SERVER_DEPLOY_PATH: ${{ secrets.SERVER_DEPLOY_PATH }}"
+
+
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@master
         with:
