@@ -1,11 +1,17 @@
 {
   "scripts": {
     "start": "npm run docs:dev",
+    "predocs:dev": "node -e \"if(parseInt(process.version.slice(1).split('.')[0]) < 20) { console.error('错误：需要 Node.js 版本 >=20，当前版本为 ' + process.version); process.exit(1) }\"",
     "docs:dev": "vitepress dev docs",
+    "predocs:build": "node -e \"if(parseInt(process.version.slice(1).split('.')[0]) < 20) { console.error('错误：需要 Node.js 版本 >=20，当前版本为 ' + process.version); process.exit(1) }\"",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "preinstall": "node -e \"if(parseInt(process.version.slice(1).split('.')[0]) < 20) { console.error('错误：需要 Node.js 版本 >=20，当前版本为 ' + process.version); process.exit(1) }\""
   },
   "dependencies": {
     "vitepress": "^1.6.3"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
