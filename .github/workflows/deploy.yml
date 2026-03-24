@@ -82,6 +82,7 @@ jobs:
 
   # 部署到自己的服务器（仅在手动触发时执行）
   deploy-to-server:
+    environment: github-pages   # 指定环境名称，需要在github-pages环境中配置变量SERVER_HOST、SERVER_USER等，这样不需要在全局配置
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_server == 'true' && github.event.inputs.test_ssh_only == 'false'
     needs: build
     runs-on: ubuntu-latest
@@ -158,6 +159,7 @@ jobs:
 
   # 仅测试 SSH 连接（不构建和部署）
   test-ssh:
+    environment: github-pages
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_ssh_only == 'true'
     runs-on: ubuntu-latest
     name: Test SSH Connection
