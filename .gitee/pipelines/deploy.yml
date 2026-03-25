@@ -1,0 +1,130 @@
+version: '1.0'
+name: Deploy
+displayName: 部署
+
+# ==================== 触发器 ====================
+triggers:
+  # 推送到 master 分支时自动触发
+  - type: push
+    branches:
+      include:
+        - master
+
+# ==================== 变量定义 ====================
+variables:
+  # 服务器部署路径
+  SERVER_DEPLOY_PATH:
+    value: '/var/www/html/blog'
+    type: string
+    description: 服务器上部署路径
+
+# ==================== 流水线阶段 ====================
+stages:
+  # ==================== 阶段1: 构建 ====================
+  - name: build
+    displayName: 构建阶段
+    jobs:
+      - name: build_job
+        displayName: 构建博客
+        runsOn: public/agent/default
+        steps:
+          - step: checkout@latest
+            name: checkout
+            displayName: 检出代码
+
+          - step: build@nodejs
+            name: install_deps
+            displayName: 安装依赖
+            version: '22'
+            commands:
+              - npm ci
+
+          - step: build@nodejs
+            name: build_site
+            displayName: 构建站点
+            version: '22'
+            commands:
+              - npm run docs:build
+
+          - step: publish@general_artifacts
+            name: publish_artifact
+            displayName: 发布构建产物
+            artifactName: dist-artifact
+            artifactPath: ./dist
+
+  # ==================== 阶段2: 部署 ====================
+  - name: deploy
+    displayName: 部署阶段
+    jobs:
+      # 部署到 Gitee Pages（自动触发）
+      - name: deploy_gitee_pages
+        displayName: 部署到 Gitee Pages
+        runsOn: public/agent/default
+        dependsOn: build
+        steps:
+          - step: publish@general_artifacts
+            name: download_artifact
+            displayName: 下载构建产物
+            artifactName: dist-artifact
+
+          - step: deploy@gitee_pages
+            name: deploy_to_pages
+            displayName: 部署到 Gitee Pages
+            publishDir: ./dist
+
+      # 部署到自己的服务器（手动触发，直接使用构建产物）
+      - name: deploy_server
+        displayName: 部署到服务器（手动）
+        runsOn: public/agent/default
+        dependsOn: build
+        strategy: manually_triggered
+        steps:
+          - step: publish@general_artifacts
+            name: download_artifact
+            displayName: 下载构建产物（无需重新构建）
+            artifactName: dist-artifact
+
+          - step: deploy@agent
+            name: prepare_server
+            displayName: 准备服务器（备份与清理）
+            hostGroupID: your-host-group-id
+            hostID: your-host-id
+            script:
+              #!/bin/bash
+              set -e
+
+              DEPLOY_PATH="${SERVER_DEPLOY_PATH}"
+              BACKUP_DIR="${DEPLOY_PATH}/backups"
+
+              # 创建备份目录
+              mkdir -p "$BACKUP_DIR"
+
+              # 备份现有文件（先删除超过5份的旧备份）
+              if [ -d "$DEPLOY_PATH" ] && [ "$(ls -A $DEPLOY_PATH 2>/dev/null | grep -v '^backups$')" ]; then
+                cd "$BACKUP_DIR"
+
+                # 删除超过5份的旧备份（保留最新的5份）
+                ls -t backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm -f
+
+                # 创建新备份
+                cd "$DEPLOY_PATH"
+                tar -czf backups/backup_$(date +%Y%m%d_%H%M%S).tar.gz --exclude='backups' .
+                echo "已备份到: backups/backup_$(date +%Y%m%d_%H%M%S).tar.gz"
+              fi
+
+              # 清空部署目录（保留 backups 目录）
+              cd "$DEPLOY_PATH"
+              find . -maxdepth 1 -mindepth 1 ! -name 'backups' -exec rm -rf {} +
+              echo "已清空部署目录（保留 backups 目录）"
+
+          - step: deploy@agent
+            name: upload_files
+            displayName: 上传文件到服务器
+            hostGroupID: your-host-group-id
+            hostID: your-host-id
+            deployArtifact:
+              - source: dist-artifact
+                target: ${SERVER_DEPLOY_PATH}
+            script:
+              #!/bin/bash
+              echo "文件上传完成！"

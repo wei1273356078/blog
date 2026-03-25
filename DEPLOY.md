@@ -1,6 +1,12 @@
 # CI/CD 配置说明
 
-## 部署流程
+本项目同时支持 **GitHub Actions** 和 **Gitee Go** 两种 CI/CD 流水线。
+
+---
+
+## GitHub Actions
+
+### 部署流程
 
 本项目配置了两个部署目标：
 
@@ -13,11 +19,9 @@
 - **触发条件**: 在 GitHub Actions 选项卡手动运行工作流，选择 "是否部署到自己的服务器" 为 `true`
 - **部署目标**: 你的 Linux 服务器
 
-## 配置步骤
+## GitHub 配置步骤
 
-### 第一步：在 GitHub 仓库添加 Secrets
-
-进入 GitHub 仓库 → Settings → Secrets and variables → Actions → New repository secret
+### 第一步：在 GitHub 仓库添加 Secrets → Settings → Secrets and variables → Actions → New repository secret
 
 需要添加以下 Secrets：
 
@@ -163,3 +167,76 @@ sudo certbot --nginx -d your-domain.com
 如果你的网站部署在子路径（如 `https://domain.com/blog/`），确保：
 1. VitePress 配置中 `base: '/blog/'` 已设置
 2. Nginx 配置中 `location /blog/` 已正确配置
+
+---
+
+## Gitee Go
+
+### 部署流程
+
+推送代码到 `master` 分支时自动触发流水线，依次执行：
+
+```
+构建 → 部署到 Gitee Pages（自动） + 部署到服务器（手动）
+```
+
+- **配置文件**: `.gitee/pipelines/VitePress-Blog.yml`
+- **触发条件**: 推送到 `master` 分支时自动触发
+- **部署目标**: Gitee Pages
+
+### 配置步骤
+
+#### 第一步：开通 Gitee Go
+
+1. 进入 Gitee 仓库 → 点击 **「流水线」** 标签页
+2. 按照提示开通 Gitee Go 服务
+
+#### 第二步：配置主机（用于服务器部署）
+
+1. 进入 Gitee 仓库 → **「流水线」** → **「主机管理」**
+2. 点击 **「添加主机」**，填入服务器信息：
+   - 主机名称：自定义（如 `blog-server`）
+   - 主机 IP：你的服务器 IP 或域名
+   - 端口：SSH 端口（默认 22）
+   - 认证方式：密码或 SSH 密钥
+3. 创建后记录 **主机组 ID** 和 **主机 ID**，填入 `.gitee/pipelines/VitePress-Blog.yml` 中的 `hostGroupID` 和 `hostID` 字段
+
+#### 第三步：配置环境变量
+
+1. 进入 Gitee 仓库 → **「流水线」** → **「流水线设置」** → **「变量管理」**
+2. 添加以下变量：
+
+| 变量名 | 说明 | 示例值 |
+|--------|------|--------|
+| `SERVER_DEPLOY_PATH` | 服务器上部署路径 | `/var/www/html/blog` |
+
+> **注意**：服务器连接信息（IP、端口、密码）在添加主机时已配置，无需再作为环境变量。`SERVER_DEPLOY_PATH` 如未配置，默认使用 `/var/www/html/blog`。
+
+#### 第四步：配置 Gitee Pages
+
+1. 进入 Gitee 仓库 → **「服务」** → **「Gitee Pages」**
+2. 部署目录选择 `/` 或根据提示配置
+3. 确认 Pages 服务已开启
+
+### 备份机制
+
+服务器部署时：
+- 自动备份现有文件为 `backup_YYYYMMDD_HHMMSS.tar.gz`
+- 只保留最近 5 个备份，旧的会自动删除
+
+### 故障排查
+
+#### Gitee Go 构建失败
+1. 检查流水线日志，查看构建阶段的错误输出
+2. 确认 Node.js 版本为 22（流水线已配置）
+3. 确认 `npm run docs:build` 可正常执行
+
+#### 服务器部署失败
+1. 检查主机管理中的连接信息是否正确
+2. 确认 `SERVER_DEPLOY_PATH` 路径存在且有写入权限
+3. 确认 `hostGroupID` 和 `hostID` 已正确填入 YAML 文件
+
+#### Gitee Pages 未更新
+1. 检查流水线是否成功完成
+2. 进入 Gitee Pages 页面确认部署目录配置
+3. Gitee Pages 可能需要几分钟后生效
